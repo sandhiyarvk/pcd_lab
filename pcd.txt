@@ -1,0 +1,884 @@
+1a...
+
+#include <stdio.h>
+#include <ctype.h>
+#include <string.h>
+
+#define MAX_TOKEN_SIZE 100
+
+// Define token types
+typedef enum {
+    TOKEN_KEYWORD,
+    TOKEN_IDENTIFIER,
+    TOKEN_NUMBER,
+    TOKEN_OPERATOR,
+    TOKEN_DELIMITER,
+    TOKEN_UNKNOWN
+} TokenType;
+
+// List of C keywords
+const char *keywords[] = {"int", "return", "float", "char", "void", "if", "else", "while", "for", "do"};
+int keywordCount = 10;
+
+// Counters for each token type
+int keywordCountFound = 0;
+int identifierCount = 0;
+int operatorCount = 0;
+int numberCount = 0;
+int delimiterCount = 0;
+int argumentCount = 0;
+
+// Function to check if a string is a keyword
+int isKeyword(const char *str) {
+    for (int i = 0; i < keywordCount; i++) {
+        if (strcmp(str, keywords[i]) == 0) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+// Function to classify and count tokens
+void classifyAndCountToken(char *token, TokenType type) {
+    switch (type) {
+        case TOKEN_KEYWORD:
+            keywordCountFound++;
+            printf("%s is a keyword\n", token);
+            break;
+        case TOKEN_IDENTIFIER:
+            identifierCount++;
+            printf("%s is an identifier\n", token);
+            break;
+        case TOKEN_NUMBER:
+            numberCount++;
+            printf("%s is a number\n", token);
+            break;
+        case TOKEN_OPERATOR:
+            operatorCount++;
+            printf("%s is an operator\n", token);
+            break;
+        case TOKEN_DELIMITER:
+            delimiterCount++;
+            printf("%s is a delimiter\n", token);
+            break;
+        default:
+            printf("%s is unknown\n", token);
+    }
+}
+
+// Function to tokenize the input code
+void tokenize(char *code) {
+    int i = 0;
+    char token[MAX_TOKEN_SIZE];
+    int tokenIndex = 0;
+
+    while (code[i] != '\0') {
+        char currentChar = code[i];
+
+        // Skip whitespace
+        if (isspace(currentChar)) {
+            i++;
+            continue;
+        }
+
+        // Handle identifiers and keywords
+        if (isalpha(currentChar) || currentChar == '_') {
+            tokenIndex = 0;
+            while (isalnum(currentChar) || currentChar == '_') {
+                token[tokenIndex++] = currentChar;
+                currentChar = code[++i];
+            }
+            token[tokenIndex] = '\0';
+            if (isKeyword(token)) {
+                classifyAndCountToken(token, TOKEN_KEYWORD);
+            } else {
+                classifyAndCountToken(token, TOKEN_IDENTIFIER);
+            }
+            continue;
+        }
+
+        // Handle numbers
+        if (isdigit(currentChar)) {
+            tokenIndex = 0;
+            while (isdigit(currentChar)) {
+                token[tokenIndex++] = currentChar;
+                currentChar = code[++i];
+            }
+            token[tokenIndex] = '\0';
+            classifyAndCountToken(token, TOKEN_NUMBER);
+            continue;
+        }
+
+        // Handle operators
+        if (strchr("+-*/=", currentChar)) {
+            token[0] = currentChar;
+            token[1] = '\0';
+            classifyAndCountToken(token, TOKEN_OPERATOR);
+            i++;
+            continue;
+        }
+
+        // Handle delimiters
+        if (strchr("();,{}", currentChar)) {
+            token[0] = currentChar;
+            token[1] = '\0';
+            classifyAndCountToken(token, TOKEN_DELIMITER);
+            i++;
+            continue;
+        }
+
+        // Handle unknown characters
+        token[0] = currentChar;
+        token[1] = '\0';
+        classifyAndCountToken(token, TOKEN_UNKNOWN);
+        i++;
+    }
+}
+
+int main() {
+    char code[] = "int main() { int number1, number2, sum; printf(\"Enter two integers: \"); scanf(\"%d %d\", &number1, &number2); sum = number1 + number2; printf(\"%d + %d = %d \", number1, number2, sum); return 0; }";
+
+    printf("Lexical Analysis:\n");
+    tokenize(code);
+
+    // Print summary
+    printf("Keywords: %d\n", keywordCountFound);
+    printf("Identifiers: %d\n", identifierCount);
+    printf("Operators: %d\n", operatorCount);
+    printf("Numbers: %d\n", numberCount);
+    printf("Delimiters: %d\n", delimiterCount);
+    printf("Arguments: %d\n", argumentCount);
+
+    return 0;
+}
+
+
+
+
+
+
+
+
+4.......
+
+
+#include <iostream> 
+#include <unordered_map> 
+#include <string> 
+#include <iomanip> 
+using namespace std; 
+ 
+struct SymbolInfo { 
+    string label;        
+    string datatype;     
+    string varName;      
+    string value;        
+    string address;      
+ 
+    SymbolInfo(string lbl = "", string dt = "", string vn = "", string val = "", string addr = "") 
+        : label(lbl), datatype(dt), varName(vn), value(val), address(addr) {} 
+}; 
+ 
+class SymbolTable { 
+private: 
+    unordered_map<string, SymbolInfo> table; 
+    int baseAddress; 
+    int addressIncrement; 
+ 
+public: 
+    SymbolTable(int startAddress) { 
+        baseAddress = startAddress; 
+        addressIncrement = 4;   
+    } 
+ 
+    void createSymbol(const string& label, const string& datatype, const string& varName, const string& value) { 
+        if (table.find(varName) != table.end()) { 
+            cout << "Error: Variable '" << varName << "' already exists." << endl; 
+        } else { 
+            string address = "0x" + to_string(baseAddress);   
+            table[varName] = SymbolInfo(label, datatype, varName, value, address); 
+            baseAddress += addressIncrement;   
+            cout << "Symbol '" << varName << "' created.\n"; 
+        } 
+    } 
+ 
+    void searchSymbol(const string& varName) { 
+        if (table.find(varName) != table.end()) { 
+            SymbolInfo& sym = table[varName]; 
+            cout << "\nSymbol Found: \n"; 
+            cout << "Label: " << sym.label << ", Datatype: " << sym.datatype << ", Variable: " << sym.varName 
+                 << ", Value: " << sym.value << ", Address: " << sym.address << endl; 
+        } else { 
+            cout << "Error: Variable '" << varName << "' not found.\n"; 
+        } 
+    } 
+ 
+    void deleteSymbol(const string& varName) { 
+        if (table.erase(varName)) { 
+            cout << "Symbol '" << varName << "' deleted.\n"; 
+        } else { 
+            cout << "Error: Variable '" << varName << "' not found.\n"; 
+        } 
+    } 
+ 
+    void displayTable() { 
+        cout << "\nSymbol Table Contents:\n"; 
+        cout << setw(10) << "Label" << setw(15) << "Datatype" << setw(15) << "Variable" 
+             << setw(10) << "Value" << setw(10) << "Address" << endl; 
+        cout << "--------------------------------------------------------------\n"; 
+        for (const auto& entry : table) { 
+            const SymbolInfo& sym = entry.second; 
+            cout << setw(10) << sym.label << setw(15) << sym.datatype << setw(15) << sym.varName 
+                 << setw(10) << sym.value << setw(10) << sym.address << endl; 
+        } 
+        cout << "--------------------------------------------------------------\n"; 
+    } 
+}; 
+ 
+int main() { 
+    int startAddress; 
+    cout << "Enter the starting memory address (in decimal): "; 
+    cin >> startAddress; 
+ 
+    SymbolTable symTable(startAddress); 
+    string label, datatype, varName, value; 
+    int choice; 
+ 
+    do { 
+        cout << "\nMenu:\n"; 
+        cout << "1. Create a new symbol\n"; 
+        cout << "2. Search for a symbol\n"; 
+        cout << "3. Delete a symbol\n"; 
+        cout << "4. Display symbol table\n"; 
+        cout << "5. Exit\n"; 
+        cout << "Enter your choice: "; 
+        cin >> choice; 
+ 
+        switch (choice) { 
+            case 1: 
+                cout << "Enter label: "; 
+                cin >> label; 
+                cout << "Enter data type (int, float, etc.): "; 
+                cin >> datatype; 
+                cout << "Enter variable name: "; 
+                cin >> varName; 
+                cout << "Enter value: "; 
+                cin >> value; 
+                symTable.createSymbol(label, datatype, varName, value); 
+                break; 
+ 
+ case 2: 
+                cout << "Enter variable name to search: "; 
+                cin >> varName; 
+                symTable.searchSymbol(varName); 
+                break; 
+            case 3: 
+                cout << "Enter variable name to delete: "; 
+                cin >> varName; 
+                symTable.deleteSymbol(varName); 
+                break; 
+            case 4: 
+                symTable.displayTable(); 
+                break; 
+            case 5: 
+                cout << "Exiting...\n"; 
+                break; 
+            default: 
+                cout << "Invalid choice! Please try again.\n"; 
+                break; 
+        } 
+    } while (choice != 5); 
+ 
+    return 0; 
+} 
+
+
+
+
+
+5.....
+
+
+#include <iostream> 
+#include <stack> 
+#include <map> 
+#include <string> 
+#include <iomanip>   
+ 
+using namespace std; 
+ 
+class PredictiveParser { 
+private: 
+    map<string, map<char, string>> parsingTable;   
+    stack<string> parseStack; 
+ 
+    void displayStack(stack<string> s) { 
+         
+        stack<string> temp; 
+        while (!s.empty()) { 
+            temp.push(s.top()); 
+            s.pop(); 
+        } 
+        while (!temp.empty()) { 
+            cout << temp.top() << " "; 
+            temp.pop(); 
+        } 
+    } 
+ 
+    void displayParsingTable() { 
+        cout << "\nPredictive Parsing Table:" << endl; 
+        cout << setw(10) << "NT/T";   
+ 
+        map<char, bool> terminals; 
+        for (auto& row : parsingTable) { 
+            for (auto& entry : row.second) { 
+                terminals[entry.first] = true; 
+            } 
+        } 
+ 
+        for (auto& t : terminals) { 
+            cout << setw(10) << t.first; 
+        } 
+        cout << endl; 
+ 
+         
+        cout << string(10 + terminals.size() * 10, '-') << endl; 
+ 
+         
+        for (auto& row : parsingTable) { 
+            cout << setw(10) << row.first;   
+            for (auto& t : terminals) { 
+                string production = parsingTable[row.first][t.first]; 
+                if (production == "") production = " "; 
+                cout << setw(10) << production;   
+            } 
+            cout << endl; 
+ 
+            cout << string(10 + terminals.size() * 10, '-') << endl; 
+        } 
+    } 
+ 
+public: 
+    PredictiveParser() { 
+        parsingTable["E"]['i'] = "T E'"; 
+        parsingTable["E"]['('] = "T E'"; 
+        parsingTable["E'"]['+'] = "+ T E'"; 
+        parsingTable["E'"]['$'] = "";   
+        parsingTable["T"]['i'] = "F T'"; 
+        parsingTable["T"]['('] = "F T'"; 
+        parsingTable["T'"]['*'] = "* F T'"; 
+        parsingTable["T'"]['+'] = "";   
+        parsingTable["T'"]['$'] = "";   
+        parsingTable["F"]['i'] = "i"; 
+        parsingTable["F"]['('] = "( E )"; 
+    } 
+ 
+    bool parse(string input) { 
+        input += "$";   
+        parseStack.push("$"); 
+        parseStack.push("E");   
+ 
+        
+        displayParsingTable(); 
+ 
+        int i = 0; 
+        while (!parseStack.empty()) { 
+            cout << "Stack: "; 
+            displayStack(parseStack); 
+            cout << " | Input: " << input.substr(i) << endl;   
+ 
+            string top = parseStack.top(); 
+            parseStack.pop(); 
+ 
+            if (top.size() == 1 && top[0] == input[i]) { 
+                cout << "Match: " << input[i] << endl; 
+                i++;   
+            } else if (isupper(top[0])) {   
+                if (parsingTable[top][input[i]] != "") { 
+                    string production = parsingTable[top][input[i]]; 
+                    cout << "Expand: " << top << " -> " << production << endl; 
+ 
+                    for (int j = production.size() - 1; j >= 0; j--) { 
+                        if (production[j] != ' ') 
+                            parseStack.push(string(1, production[j])); 
+                    } 
+                } else { 
+                    cout << "Error: No rule to expand " << top << " with input " << input[i] << endl; 
+                    return false;   
+                } 
+            } else { 
+                cout << "Error: Unexpected symbol " << top << endl; 
+                return false;   
+            } 
+        } 
+ 
+        return input[i] == '$';   
+    } 
+}; 
+ 
+int main() { 
+    string input; 
+    cout << "Enter the string to parse: "; 
+    cin >> input; 
+ 
+    PredictiveParser parser; 
+    if (parser.parse(input)) { 
+        cout << "String is successfully parsed." << endl; 
+    } else { 
+        cout << "String is rejected." << endl; 
+    } 
+ 
+    return 0; 
+}
+
+
+
+6...... 
+
+
+#include<iostream>
+using namespace std;
+
+char stack[20],input[20];
+
+int top=-1,i=0;
+
+int main()
+{
+    cout<<"Enter the input string"<<endl;
+    cin>>input;
+    
+    cout<<"A->a,B->b,S->AB"<<endl;
+    cout<<"Parsing Steps"<<endl;
+    
+    while(input[i]!='\0')
+    {
+        stack[++top]=input[i++];
+        cout<<"stack "<<stack<<" "<<"input "<<(input+i)<<endl;
+        
+        if(stack[top]=='a')
+        {
+            stack[top]='A';
+            cout<<"Action A->a"<<endl;
+            
+        }
+        else if(stack[top]=='b')
+        {
+            stack[top]='B';
+            
+            cout<<"Action B->b"<<endl;
+        }
+        if(top>0 && stack[top]=='B' && stack[top -1]=='A' )
+        {
+            top-=2;
+            stack[++top]='S';
+            cout<<"Action S->AB"<<endl;
+        }
+    }
+    
+    if(top==0 && stack[top]=='S')
+    {
+        
+        cout<<"String sucessfully parsed"<<endl;
+    }
+    
+    else
+    {
+        cout<<"String sucessfully not  parsed"<<endl;
+        
+    }
+    
+    
+}
+
+
+
+
+7.....
+
+
+
+
+#include <iostream> 
+#include <iomanip> 
+#include <vector> 
+#include <map> 
+#include <set> 
+#include <string> 
+ 
+using namespace std; 
+ 
+// Grammar rule structure 
+struct Production { 
+    string lhs; 
+    string rhs; 
+}; 
+ 
+// State structure for LR(0) parser 
+struct State { 
+    int id; 
+    map<string, string> action; 
+    map<string, int> gotoTable; 
+}; 
+ 
+// Function to generate LR(0) states (dummy values) 
+void generateStates(vector<Production> &productions, vector<State> &states) { 
+    // Placeholder logic to simulate the generation of states and actions for a grammar (userprovided) 
+    // This part would normally generate the states based on the grammar's LR(0) items 
+ 
+    // Example State Table (dummy) 
+    states.push_back({0, {{"(", "S4"}, {"+", "-"}, {"i", "S7"}}, {{"E", 1}, {"F", 9}, {"T", 12}}}); 
+    states.push_back({1, {{"$", "acc"}}, {}}); 
+    states.push_back({2, {{"*", "S2"}, {"+", "-"}}, {{"T", 3}}}); 
+    states.push_back({3, {{"*", "S8"}, {"+", "-"}}, {}}); 
+    states.push_back({4, {{"i", "S7"}, {"(", "S4"}}, {}}); 
+    states.push_back({5, {{"$", "r1"}, {")", "r1"}, {"+", "r1"}}, {}}); 
+    // Add more states based on user grammar 
+} 
+ 
+// Function to display the LR(0) Parsing Table 
+void displayParsingTable(const vector<State> &states) { 
+    // Header for table (including terminals and non-terminals) 
+    cout << setw(4) << "St." << setw(10) << "$" << setw(10) << "(" << setw(10) << ")" 
+         << setw(10) << "*" << setw(10) << "+" << setw(10) << "i" << setw(10) << "E" 
+         << setw(10) << "F" << setw(10) << "T" << endl; 
+ 
+    // Display each state with corresponding actions and gotos 
+    for (const auto &state : states) { 
+        cout << setw(4) << "I" + to_string(state.id); 
+        for (const string &symbol : {"$", "(", ")", "*", "+", "i", "E", "F", "T"}) { 
+            if (state.action.count(symbol)) { 
+                cout << setw(10) << state.action.at(symbol); 
+            } else if (state.gotoTable.count(symbol)) { 
+                cout << setw(10) << state.gotoTable.at(symbol); 
+            } else { 
+                cout << setw(10) << "-"; 
+            } 
+        } 
+        cout << endl; 
+    } 
+} 
+ 
+// Function to get user input for grammar productions 
+void getGrammarInput(vector<Production> &productions) { 
+    int n; 
+    cout << "Enter the number of productions: "; 
+    cin >> n; 
+    cin.ignore(); 
+ 
+    cout << "Enter the productions in the form A->B (for example, E->E+T or T->T*F):\n"; 
+    for (int i = 0; i < n; ++i) { 
+        string production; 
+        getline(cin, production); 
+        size_t arrowPos = production.find("->"); 
+        string lhs = production.substr(0, arrowPos); 
+        string rhs = production.substr(arrowPos + 2); 
+        productions.push_back({lhs, rhs}); 
+    } 
+} 
+ 
+int main() { 
+    // Step 1: User input for grammar productions 
+    vector<Production> productions; 
+    getGrammarInput(productions); 
+ 
+    // Step 2: Generate LR(0) states based on grammar 
+    vector<State> states; 
+    generateStates(productions, states); 
+ 
+    // Step 3: Display the LR(0) parsing table 
+    displayParsingTable(states); 
+ 
+    return 0; 
+}
+
+
+
+INPUT
+
+Enter the number of productions: E->E+E F->E E->T T->(E)
+Enter the productions in the form A->B (for example, E->E+T or T->T*F):
+ St.         $         (         )         *         +         i         E         F         T
+  I0         -        S4         -         -         -        S7         1         9        12
+  I1       acc         -         -         -         -         -         -         -         -
+  I2         -         -         -        S2         -         -         -         -         3
+  I3         -         -         -        S8         -         -         -         -         -
+  I4         -        S4         -         -         -        S7         -         -         -
+  I5        r1         -        r1         -        r1         -         -         -         -
+
+
+
+8......
+
+
+#include <iostream>
+#include <cstring>
+
+int main() {
+    char input[50], operators[5] = "/*+-";
+    std::cout << "Enter the arithmetic Expression: ";
+    std::cin >> input;
+
+    int k = 1;
+    for (int i = 0; i < 4; i++) {
+        for (int j = 2; input[j] != '\0'; j++) {
+            if (operators[i] == input[j]) {
+                std::cout << "t" << k << " := ";
+                
+                if (input[j - 1] >= '0' && input[j - 1] <= '9')
+                    std::cout << "t" << input[j - 1];
+                else
+                    std::cout << input[j - 1];
+                
+                std::cout << input[j];
+                
+                if (input[j + 1] >= '0' && input[j + 1] <= '9')
+                    std::cout << "t" << input[j + 1];
+                else
+                    std::cout << input[j + 1];
+                
+                input[j - 1] = k + '0';
+                int g = j;
+                
+                for (; input[g + 2] != '\0'; g++) {
+                    input[g] = input[g + 2];
+                }
+                input[g] = '\0';
+                
+                k++;
+                std::cout << std::endl;
+            }
+        }
+    }
+
+    std::cout << input[0] << " := t" << input[2] << std::endl;
+    
+    return 0;
+}
+
+
+
+9......
+
+
+
+#include <iostream>
+#include <fstream>
+#include <cstring>
+#include <cctype>
+
+int ag = 0, z = 1;
+
+int main() {
+    char a[50], id[50], mov[] = "MOVF", mul[] = "MULF", add[] = "ADDF", sub[] = "SUBF";
+    int i = 0, j = 0, len = 0, r = 1, s = 0, e = 0;
+
+    std::ofstream fp("out1.txt");
+
+    if (!fp) {
+        std::cerr << "Error opening file!";
+        return 1;
+    }
+
+    std::cout << "\nEnter the Input: ";
+    std::cin.getline(a, 50);
+
+    len = std::strlen(a);
+
+    // Processing the input for '=' operator
+    for (i = 0; i < len; i++) {
+        if (a[i] == '=') {
+            for (j = 1; j < len; j++) {
+                if (a[j] == 'i') {
+                    fp << "\n" << mov << " ";
+                    fp << a[j] << a[j + 1] << a[j + 2] << ",R" << r++;
+                }
+            }
+        } else if ((a[i] <= '9') && (a[i] >= '0')) {
+            if ((a[i + 1] <= '9') && (a[i + 1] >= '0')) {
+                fp << "\n" << mov << " #" << a[i] << a[i + 1] << ",R" << r++;
+            }
+        }
+    }
+
+    // Processing the input for arithmetic operators
+    for (i = len - 1; i >= 0; i--) {
+        if (a[i] == '+') {
+            fp << "\n" << add << " ";
+            e = a[i - 1];
+            e--;
+            s = e;
+
+            if (a[i + 1] == 'i') {
+                fp << "R" << e << ",R" << (r - 1);
+            }
+        } else if (a[i] == '-') {
+            fp << "\n" << sub;
+            e = a[i - 1];
+            e--;
+            s = 0;
+
+            if (a[i + 1] == 'i') {
+                fp << "R" << (a[i + 3] - 1) << ",R" << s;
+            } else {
+                fp << "R" << e << ",R" << (r - 1);
+            }
+        } else if (a[i] == '*') {
+            fp << "\n" << mul << " ";
+            e = a[i - 1];
+            e--;
+            s = e;
+
+            if (a[i + 1] == 'i') {
+                fp << "R" << (a[i + 3] - 1) << ",R" << s;
+            } else {
+                fp << "R" << e << ",R" << (r - 1);
+            }
+        }
+    }
+
+    fp << "\n" << mov << " R" << (r - 1) << ",id1";
+
+    fp.close();
+    return 0;
+}
+
+
+
+10......
+
+
+#include <iostream>
+#include <string>
+#include <vector>
+#include <cstring>
+
+using namespace std;
+
+struct Code {
+    string left;
+    string right;
+    bool isUsed = false;
+};
+
+int main() {
+    int n;
+    vector<Code> expressions;
+
+    cout << "Enter total number of Expressions: ";
+    cin >> n;
+
+    // Input L and R values
+    cout << "Enter L, R-values:\n";
+    for (int i = 0; i < n; ++i) {
+        Code temp;
+        cout << "Left : ";
+        cin >> temp.left;
+        cout << "Right : ";
+        cin >> temp.right;
+        expressions.push_back(temp);
+    }
+
+    // Display Intermediate code
+    cout << "\nIntermediate code:\n";
+    for (const auto &expr : expressions) {
+        cout << expr.left << " = " << expr.right << endl;
+    }
+
+    // Mark dead code
+    for (int i = 0; i < n; ++i) {
+        expressions[i].isUsed = false;
+    }
+
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; ++j) {
+            if (expressions[j].right.find(expressions[i].left) != string::npos) {
+                expressions[i].isUsed = true;
+                break;
+            }
+        }
+    }
+
+    // After dead code elimination
+    cout << "\nAfter dead code Elimination:\n";
+    for (const auto &expr : expressions) {
+        if (expr.isUsed) {
+            cout << expr.left << " = " << expr.right << endl;
+        }
+    }
+
+    // Finding common sub-expressions
+    cout << "\nCommon Sub Expressions are...";
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < i; ++j) {
+            if (expressions[i].right == expressions[j].right) {
+                cout << "\n" << expressions[j].left << " = " << expressions[j].right;
+                cout << "\n" << expressions[i].left << " = " << expressions[i].right;
+                break;
+            }
+        }
+    }
+
+    // Eliminating common sub-expressions
+    cout << "\n\nAfter Eliminating common sub-expressions:\n\n";
+    for (int i = 0; i < n; ++i) {
+        bool isDuplicate = false;
+        for (int j = 0; j < i; ++j) {
+            if (expressions[i].right == expressions[j].right) {
+                isDuplicate = true;
+                break;
+            }
+        }
+        if (!isDuplicate && expressions[i].isUsed) {
+            cout << expressions[i].left << " = " << expressions[i].right << endl;
+        }
+    }
+
+    return 0;
+}
+
+
+
+
+
+Enter total number of Expressions: 6
+Enter L, R-values:
+Left : a
+Right : 6
+Left : b
+Right : c+d
+Left : c
+Right : e+f
+Left : c
+Right : c+d
+Left : e
+Right : a+c
+Left : f
+Right : a+e
+
+Intermediate code:
+a = 6
+b = c+d
+c = e+f
+c = c+d
+e = a+c
+f = a+e
+
+After dead code Elimination:
+a = 6
+c = e+f
+c = c+d
+e = a+c
+f = a+e
+
+Common Sub Expressions are...
+b = c+d
+c = c+d
+
+After Eliminating common sub-expressions:
+
+a = 6
+c = e+f
+e = a+c
+f = a+e
+
